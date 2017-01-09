@@ -24,11 +24,12 @@ input element.
 <dom-module id="url-input">
   <template>
     <style>
-    :host {
+     :host {
       outline: none;
       box-shadow: none;
       background: transparent;
     }
+
     .container {
       @apply(--layout-horizontal);
     }
@@ -62,7 +63,6 @@ input element.
     .variable {
       background-color: var(--url-input-marker, yellow);
     }
-
     </style>
     <div class="container">
       <div class="user-input"
@@ -71,7 +71,7 @@ input element.
         aria-labelledby$="[[ariaLabel]]"
         disabled$="[[disabled]]"
         readonly$="[[readonly]]"
-        on-input="_userInputHandler"
+        on-keyup="_userInputHandler"
         on-click="_userInputClickHandler"
         on-blur="_onBlur"></div>
     </div>
@@ -139,7 +139,6 @@ input element.
       if (this._internalValueChange) {
         return;
       }
-
       var html = this._getInputHtml(url);
       if (!html) {
         this.$.userInput.innerHTML = url;
@@ -153,10 +152,11 @@ input element.
     _userInputHandler: function(e) {
       var raw = e.target.innerText;
       var html = this._getInputHtml(e.target.innerText);
+      var position = this._getCarretPosition();
       if (html) {
         e.target.innerHTML = html;
         try {
-          this._setCursor(e.target); // may raise error
+          this._setCursor(e.target, position);
         } catch (e) {}
       }
       this._internalValueChange = true;
@@ -182,19 +182,26 @@ input element.
     },
 
     // Sets the cusror at the ened of the text field.
-    _setCursor: function(node) {
-      node.focus();
-      var caret = node.childNodes.length;
+    _setCursor: function(container, position) {
+      container.focus();
+      var node = container.childNodes[position[0]];
       var range = document.createRange();
-      range.setStart(node, caret);
-      range.setEnd(node, caret);
+      range.setStart(node, position[1]);
+      range.setEnd(node, position[1]);
       var sel = window.getSelection();
       sel.removeAllRanges();
       sel.addRange(range);
     },
 
     _userInputClickHandler: function(e) {
-      var source = e.path[0];
+      var source;
+      if (!e.path) {
+        e = Polymer.dom(e);
+        source = e.rootTarget;
+      } else {
+        source = e.path[0];
+      }
+
       if (!(source && source.classList && source.classList.contains('variable'))) {
         this.fire('variable-click');
         return;
@@ -203,7 +210,7 @@ input element.
       if (!variableId) {
         return;
       }
-      e.stopPropagation();
+      (e.event || e).stopPropagation();
       this.fire('variable-click', {
         variable: variableId
       });
@@ -236,6 +243,30 @@ input element.
         this.setAttribute('focused', true);
         this.$.userInput.focus();
       }
+    },
+
+    _getCarretPosition: function() {
+      var element = this.$.userInput;
+      var pos = 0;
+      var containerIndex = 0;
+      var selection = window.getSelection();
+      if (selection.rangeCount === 1) {
+        var range = selection.getRangeAt(0);
+        if (range.collapsed) {
+          var container = range.startContainer;
+          if (container !== element) {
+            for (var i = 0, len = element.childNodes.length; i < len; i++) {
+              var node = element.childNodes[i];
+              if (node === container) {
+                containerIndex = i;
+                break;
+              }
+            }
+          }
+          pos = range.startOffset;
+        }
+      }
+      return [containerIndex, pos];
     }
   });
   </script>
