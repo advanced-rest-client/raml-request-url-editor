@@ -49,3 +49,9 @@ An URL input.
 This element preteds to be an `<input>` element in order to add custom behavior to the
 input element.
 
+
+
+### Events
+| Name | Description | Params |
+| --- | --- | --- |
+| request-url-accepted | An event fired when the user press Enter on the input field. It's more reliable than listening on the keydown event. | url **String** - The URL at the moment when the user pressed enter in the field. |
