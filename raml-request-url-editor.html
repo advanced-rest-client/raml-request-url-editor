@@ -214,9 +214,11 @@ Additionally use styles defined for the `paper-input` element.
      * Overidden from Polymer.IronControlState.
      */
     _onFocusedChanged: function(focused) {
-      if (!focused) {
-        this._handleAutoValidate();
-      }
+      this.debounce('focus', function() {
+        if (!focused) {
+          this._handleAutoValidate();
+        }
+      }, 20);
     },
     /**
      * If called it mean that the method has changed. And possibly the url value.

@@ -72,6 +72,7 @@ input element.
         disabled$="[[disabled]]"
         readonly$="[[readonly]]"
         on-keyup="_userInputHandler"
+        on-keydown="_keyDownHandler"
         on-click="_userInputClickHandler"
         on-blur="_onBlur"></div>
     </div>
@@ -83,7 +84,13 @@ input element.
     behaviors: [
       Polymer.IronValidatableBehavior
     ],
-
+    /**
+     * An event fired when the user press Enter on the input field. It's more reliable than
+     * listening on the keydown event.
+     *
+     * @event request-url-accepted
+     * @param {String} url The URL at the moment when the user pressed enter in the field.
+     */
     properties: {
       url: {
         type: String,
@@ -241,8 +248,11 @@ input element.
     _onFocus: function() {
       if (!this.getAttribute('focused')) {
         this.setAttribute('focused', true);
-        this.$.userInput.focus();
       }
+    },
+
+    focus: function() {
+      this.$.userInput.focus();
     },
 
     _getCarretPosition: function() {
@@ -267,6 +277,16 @@ input element.
         }
       }
       return [containerIndex, pos];
+    },
+
+    _keyDownHandler: function(e) {
+      if (e.keyCode === 13) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.fire('request-url-accepted', {
+          url: this.url
+        });
+      }
     }
   });
   </script>
