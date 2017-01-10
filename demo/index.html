@@ -50,7 +50,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <h1>The raml-request-url-editor element</h1>
       <div main>
         <template is="dom-if" if="[[isMethod]]">
-          <raml-request-url-editor auto-validate required uri-parameters="[[selected.allUriParameters]]" value="{{url}}" url="[[selected.absoluteUrl]]"></raml-request-url-editor>
+          <raml-request-url-editor auto-validate required uri-parameters="[[selected.allUriParameters]]" value="{{url}}" url="[[selected.absoluteUri]]"></raml-request-url-editor>
           <h4>Current URL value</h4>
           <output>[[url]]</output>
         </template>
