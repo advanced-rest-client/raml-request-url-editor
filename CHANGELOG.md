@@ -1,3 +1,13 @@
+<a name="0.1.7"></a>
+## [0.1.7](https://github.com/advanced-rest-client/raml-request-url-editor/compare/0.1.6...v0.1.7) (2017-04-12)
+
+
+### Update
+
+* Changed the valudation method for the URL. Updated tests ([6af984235f8f284ac9581cc61b0ab0d88f9c494c](https://github.com/advanced-rest-client/raml-request-url-editor/commit/6af984235f8f284ac9581cc61b0ab0d88f9c494c))
+
+
+
 <a name="0.1.4"></a>
 ## 0.1.4 (2017-01-10)
 

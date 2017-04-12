@@ -237,7 +237,22 @@ input element.
       if (!value) {
         return true;
       }
-      return value.match(this._variablesRegexp) === null;
+      if (value.indexOf('{') !== -1 && value.indexOf('}') !== -1) {
+        return false;
+      }
+
+      if ('URL' in window) {
+        try {
+          new URL(value);
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+      var i = document.createElement('input');
+      i.type = 'url';
+      i.value = value;
+      return i.validity.valid;
     },
 
     _onBlur: function() {

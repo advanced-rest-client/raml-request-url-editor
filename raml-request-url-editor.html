@@ -53,7 +53,7 @@ When the `value` if this control change then the `url-value-changed` event will 
 Custom property | Description | Default
 ----------------|-------------|----------
 `--raml-request-url-editor` | Mixin applied to the element | `{}`
-`--raml-request-url-editor-documentation` | Mixin applied to the documentation field. Not that this node has the `--paper-font-body1` mixin and also `markdown-styles` applies. | `{}`
+`--raml-request-url-editor-documentation` | Mixin applied to the documentation field. Not that this node has the `--arc-font-body1` mixin and also `markdown-styles` applies. | `{}`
 `--url-input-marker` | Background color of the URI variable marker | `yellow`
 
 Additionally use styles defined for the `paper-input` element.
@@ -73,7 +73,7 @@ Additionally use styles defined for the `paper-input` element.
     }
 
     .markdown-body {
-      @apply(--paper-font-body1);
+      @apply(--arc-font-body1);
       margin-top: 12px;
       color: rgba(0, 0, 0, 0.54);
       @apply(--raml-request-url-editor-documentation);
@@ -146,12 +146,11 @@ Additionally use styles defined for the `paper-input` element.
       },
       errorMessage: {
         type: String,
-        value: 'Fill the URI parameters before making the request'
+        value: 'Fill the URI parameters before making a request'
       },
       // A documentation to show.
       documentation: {
-        type: String,
-        value: ''
+        type: String
       },
       // If true it will not display documentation for the variable (if available).
       skipDocs: Boolean
