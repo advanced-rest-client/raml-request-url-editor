@@ -30,20 +30,31 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </test-fixture>
 
     <script>
-    /* global suite, test, fixture, assert, forceXIfStamp, setup */
+    /* global fixture, assert, forceXIfStamp */
     suite('basic', function() {
       var input;
       setup(function() {
         input = fixture('basic');
       });
-      test('invalid input is not ok', function() {
-        input.value = 'http://{variable}.com';
+
+      test('Should be validated', function() {
+        input.value = 'http://domain.com';
+        assert.isFalse(input.invalid);
+      });
+
+      test('Should not be validated', function() {
+        input.value = 'domain.com';
+        assert.isTrue(input.invalid);
+      });
+
+      test('Should not be validated', function() {
+        input.value = 'https://{param}.domain.com';
+        assert.isTrue(input.invalid);
+      });
+
+      test('Should display error message', function() {
+        input.value = 'https://{param}.domain.com';
         forceXIfStamp(input);
-
-        var container = Polymer.dom(input.root).querySelector('paper-input-container');
-        assert.ok(container, 'paper-input-container exists');
-        assert.isTrue(container.invalid);
-
         var error = Polymer.dom(input.root).querySelector('paper-input-error');
         assert.ok(error, 'paper-input-error exists');
         assert.notEqual(getComputedStyle(error).visibility, 'hidden', 'error is not visibility:hidden');
