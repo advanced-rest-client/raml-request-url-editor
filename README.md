@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/advanced-rest-client/raml-request-url-editor.svg?branch=master)](https://travis-ci.org/advanced-rest-client/raml-request-url-editor)  
+[![Build Status](https://travis-ci.org/advanced-rest-client/raml-request-url-editor.svg?branch=stage)](https://travis-ci.org/advanced-rest-client/raml-request-url-editor)  
 
 # raml-request-url-editor
 
@@ -32,7 +32,7 @@ When the `value` if this control change then the `url-value-changed` event will 
 Custom property | Description | Default
 ----------------|-------------|----------
 `--raml-request-url-editor` | Mixin applied to the element | `{}`
-`--raml-request-url-editor-documentation` | Mixin applied to the documentation field. Not that this node has the `--paper-font-body1` mixin and also `markdown-styles` applies. | `{}`
+`--raml-request-url-editor-documentation` | Mixin applied to the documentation field. Not that this node has the `--arc-font-body1` mixin and also `markdown-styles` applies. | `{}`
 `--url-input-marker` | Background color of the URI variable marker | `yellow`
 
 Additionally use styles defined for the `paper-input` element.
