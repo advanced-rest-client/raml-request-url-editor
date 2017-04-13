@@ -1,3 +1,14 @@
+<a name="0.1.8"></a>
+## [0.1.8](https://github.com/advanced-rest-client/raml-request-url-editor/compare/0.1.6...v0.1.8) (2017-04-13)
+
+
+### Update
+
+* Changed the valudation method for the URL. Updated tests ([6af984235f8f284ac9581cc61b0ab0d88f9c494c](https://github.com/advanced-rest-client/raml-request-url-editor/commit/6af984235f8f284ac9581cc61b0ab0d88f9c494c))
+* Updated behavior for control keys down (arrows, strl, cmd and so on). Also added scroll tracking for the input ([14aa242690960bd030a60af122e67929c9eb19cc](https://github.com/advanced-rest-client/raml-request-url-editor/commit/14aa242690960bd030a60af122e67929c9eb19cc))
+
+
+
 <a name="0.1.7"></a>
 ## [0.1.7](https://github.com/advanced-rest-client/raml-request-url-editor/compare/0.1.6...v0.1.7) (2017-04-12)
 
