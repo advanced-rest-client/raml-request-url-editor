@@ -16,22 +16,23 @@ the License.
 <link rel="import" href="../paper-input/paper-input-behavior.html">
 <link rel="import" href="../paper-input/paper-input-error.html">
 <link rel="import" href="../iron-form-element-behavior/iron-form-element-behavior.html">
+<link rel="import" href="../iron-validatable-behavior/iron-validatable-behavior.html">
 <link rel="import" href="../marked-element/marked-element.html">
 <link rel="import" href="../markdown-styles/markdown-styles.html">
 <link rel="import" href="../paper-styles/typography.html">
-
-<link rel="import" href="url-input.html">
+<link rel="import" href="../iron-input/iron-input.html">
 
 <!--
 `<raml-request-url-editor>` An URL editor for the RAML request panel
 
-This element is mocking an input element to provide URI variables highlight.
-It will mark every occurence of the `{STRING}`. Additionally, if the `uriParameters` array is
-set, and the user click on the variable name then the documentation fot this variable will be
-displayed. This behavior can be turned off by setting `skip-docs` attribute (`skipDocs` property).
+Use this input element to provide URI variables support.
+If the `uriParameters` array is set, and the user click on the variable name
+then the documentation for this variable will be displayed.
+This behavior can be turned off by setting `skip-docs` attribute (or `skipDocs`
+property).
 
-The element also mimic the input's validation behavior. If the value contains s string that matches
-the following regexp `{\s+}` then it will display a validation error.
+The element has custom validation. If the value contains a variable string
+("{some string}") then it will display a validation error.
 
 ### Example
 ```html
@@ -45,7 +46,21 @@ input.addEventListener('value-changed', function(e) {
 });
 ```
 
-When the `value` if this control change then the `url-value-changed` event will be fired.
+When the `value` of this control change then the `url-value-changed` event will
+be fired. Also, if other element or the application will send this event then
+the value of this form control will be updated. This is a way to update URL
+value without directly accessing the element.
+
+```jsvascript
+document.dispatchEvent(new CustomEvent('url-value-changed', {
+  bubbles: true,
+  detail: {
+    value: 'http://www.domain.com'
+  }
+}));
+```
+
+Firing this event will update the value to `http://www.domain.com`.
 
 ### Styling
 `<raml-request-url-editor>` provides the following custom properties and mixins for styling:
@@ -87,15 +102,18 @@ Additionally use styles defined for the `paper-input` element.
       disabled$="[[disabled]]"
       invalid="[[invalid]]">
       <label hidden$="[[!label]]">[[label]]</label>
-      <url-input id="input" class="paper-input-input"
+      <input is="iron-input"
+        id="input"
+        class="paper-input-input"
         aria-label-prefix="[[_ariaLabelledBy]]"
-        url="{{value}}"
-        invalid="{{invalid}}"
+        value="{{value::input}}"
         disabled$="[[disabled]]"
         required$="[[required]]"
         autofocus$="[[autofocus]]"
         readonly$="[[readonly]]"
-        type="url"></url-input>
+        type="url"
+        on-tap="_inputTap"
+        on-blur="_onElementBlur"/>
       <template is="dom-if" if="[[errorMessage]]">
         <paper-input-error>[[errorMessage]]</paper-input-error>
       </template>
@@ -112,6 +130,7 @@ Additionally use styles defined for the `paper-input` element.
 
     behaviors: [
       Polymer.PaperInputBehavior,
+      Polymer.IronValidatableBehavior,
       Polymer.IronFormElementBehavior
     ],
 
@@ -124,7 +143,7 @@ Additionally use styles defined for the `paper-input` element.
      */
 
     properties: {
-      // A list of RAML defined URL parameters
+      // A list of RAML defined URI parameters
       uriParameters: Array,
       // A RAML defined absolute URL for this endpoint. It may contain variables
       url: {
@@ -156,15 +175,6 @@ Additionally use styles defined for the `paper-input` element.
       skipDocs: Boolean
     },
 
-    observers: [
-      '_onFocusedChanged(focused)'
-    ],
-
-    listeners: {
-      'variable-click': '_onVariableSelected',
-      'blur': '_onElementBlur'
-    },
-
     hostAttributes: {
       'tabindex': -1,
       focusable: true
@@ -179,21 +189,11 @@ Additionally use styles defined for the `paper-input` element.
     },
 
     attached: function() {
-      this._eventTarget = Polymer.dom(this).host || document;
-      this.listen(this._eventTarget, 'url-value-changed', '_extValueChangedHandler');
-    },
-    detached: function() {
-      if (!this._eventTarget) {
-        return;
-      }
-      this.unlisten(this._eventTarget, 'url-value-changed', '_extValueChangedHandler');
+      this.listen(window, 'url-value-changed', '_extValueChangedHandler');
     },
 
-    /**
-     * Overidden from Polymer.PaperInputBehavior.
-     */
-    validate: function() {
-      return this.$.input.validate();
+    detached: function() {
+      this.unlisten(window, 'url-value-changed', '_extValueChangedHandler');
     },
 
     /**
@@ -210,16 +210,6 @@ Additionally use styles defined for the `paper-input` element.
     },
 
     /**
-     * Overidden from Polymer.IronControlState.
-     */
-    _onFocusedChanged: function(focused) {
-      this.debounce('focus', function() {
-        if (!focused) {
-          this._handleAutoValidate();
-        }
-      }, 20);
-    },
-    /**
      * If called it mean that the method has changed. And possibly the url value.
      * If the old value id the same as the new value it means that the user switched a method
      * staying with the same andpoint. Therefore nothing needs to be done.
@@ -231,11 +221,6 @@ Additionally use styles defined for the `paper-input` element.
       this.set('value', value);
     },
 
-    _onVariableSelected: function(e, detail) {
-      e.stopPropagation();
-      var id = detail.variable;
-      this._displayVariableDoc(id);
-    },
     // Displays the doc for the variable.
     _displayVariableDoc: function(id) {
       if (this.skipDocs) {
@@ -254,6 +239,7 @@ Additionally use styles defined for the `paper-input` element.
         }
       }
       if (!item || !item.description) {
+        this.documentation = '';
         return;
       }
       this.documentation = item.description;
@@ -274,6 +260,105 @@ Additionally use styles defined for the `paper-input` element.
       }
       this.set('value', e.detail.value);
     },
+
+    _getValidity: function() {
+      var value = this.value;
+      if (!this.required && !value) {
+        return true;
+      }
+
+      if (value === undefined) {
+        return true;
+      }
+
+      if (!value && this.required) {
+        return false;
+      }
+
+      if (!value) {
+        return true;
+      }
+
+      if (value.indexOf('{') !== -1 && value.indexOf('}') !== -1) {
+        return false;
+      }
+
+      if ('URL' in window) {
+        try {
+          new URL(value);
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+      return this.$.input.validity.valid;
+    },
+    // Handler for input click / tap.
+    _inputTap: function() {
+      var variable = this._getSelectedVariable();
+      this._displayVariableDoc(variable);
+    },
+    /**
+     * Returns variable name for current caret position.
+     * This can be used for mouse on keyboard events to determine
+     * if current action involve a variable.
+     * It takes a selection start as a orientation point to find a variable.
+     *
+     * @return {String|undefined} Variable name or undefined if at current
+     * position there's no variable.
+     */
+    _getSelectedVariable: function() {
+      var start = this.$.input.selectionStart;
+      var variable = this._computeVariableFromPosition(start);
+      return variable;
+    },
+    /**
+     * Computes variable from current caret position.
+     * It looks for brackets to the left and right from the selection and
+     * everything between is a variable name.
+     *
+     * @param {Number} start Caret position in thex field.
+     * @return {String|undefined} Variable name or undefined if at current
+     * position there's no variable.
+     */
+    _computeVariableFromPosition: function(start) {
+      var value = this.value;
+      if (!start || !value) {
+        return;
+      }
+      // Check existance of the left bracket "{".
+      var pos;
+      var leftBracketPos = -1;
+      for (pos = start; pos > 0; pos--) {
+        if (value[pos] === '}') {
+          break;
+        }
+        if (value[pos] === '{') {
+          leftBracketPos = pos;
+          break;
+        }
+      }
+      if (leftBracketPos === -1) {
+        // Click is not in the vartiable.
+        return;
+      }
+      var rightBracketPos = -1;
+      for (pos = leftBracketPos; pos < value.length; pos++) {
+        var _val = value[pos];
+        if (_val === '}') {
+          rightBracketPos = pos;
+          break;
+        } else if (_val === '.' || _val === '/') {
+          break;
+        }
+      }
+      if (rightBracketPos === -1) {
+        return;
+      }
+      var variable = value.substr(leftBracketPos + 1,
+        rightBracketPos - leftBracketPos - 1);
+      return variable;
+    }
   });
   </script>
 </dom-module>
