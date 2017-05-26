@@ -4,13 +4,14 @@
 
 `<raml-request-url-editor>` An URL editor for the RAML request panel
 
-This element is mocking an input element to provide URI variables highlight.
-It will mark every occurence of the `{STRING}`. Additionally, if the `uriParameters` array is
-set, and the user click on the variable name then the documentation fot this variable will be
-displayed. This behavior can be turned off by setting `skip-docs` attribute (`skipDocs` property).
+Use this input element to provide URI variables support.
+If the `uriParameters` array is set, and the user click on the variable name
+then the documentation for this variable will be displayed.
+This behavior can be turned off by setting `skip-docs` attribute (or `skipDocs`
+property).
 
-The element also mimic the input's validation behavior. If the value contains s string that matches
-the following regexp `{\s+}` then it will display a validation error.
+The element has custom validation. If the value contains a variable string
+("{some string}") then it will display a validation error.
 
 ### Example
 ```html
@@ -24,7 +25,21 @@ input.addEventListener('value-changed', function(e) {
 });
 ```
 
-When the `value` if this control change then the `url-value-changed` event will be fired.
+When the `value` of this control change then the `url-value-changed` event will
+be fired. Also, if other element or the application will send this event then
+the value of this form control will be updated. This is a way to update URL
+value without directly accessing the element.
+
+```jsvascript
+document.dispatchEvent(new CustomEvent('url-value-changed', {
+  bubbles: true,
+  detail: {
+    value: 'http://www.domain.com'
+  }
+}));
+```
+
+Firing this event will update the value to `http://www.domain.com`.
 
 ### Styling
 `<raml-request-url-editor>` provides the following custom properties and mixins for styling:
@@ -33,7 +48,6 @@ Custom property | Description | Default
 ----------------|-------------|----------
 `--raml-request-url-editor` | Mixin applied to the element | `{}`
 `--raml-request-url-editor-documentation` | Mixin applied to the documentation field. Not that this node has the `--arc-font-body1` mixin and also `markdown-styles` applies. | `{}`
-`--url-input-marker` | Background color of the URI variable marker | `yellow`
 
 Additionally use styles defined for the `paper-input` element.
 
@@ -43,15 +57,3 @@ Additionally use styles defined for the `paper-input` element.
 | Name | Description | Params |
 | --- | --- | --- |
 | url-value-changed | Fired when the URL value change. Note that this event is fifed before validation occur and therefore the URL may be invalid. | value **String** - The URL. |
-# url-input
-
-An URL input.
-This element preteds to be an `<input>` element in order to add custom behavior to the
-input element.
-
-
-
-### Events
-| Name | Description | Params |
-| --- | --- | --- |
-| request-url-accepted | An event fired when the user press Enter on the input field. It's more reliable than listening on the keydown event. | url **String** - The URL at the moment when the user pressed enter in the field. |
