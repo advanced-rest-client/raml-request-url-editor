@@ -10,8 +10,7 @@
   ],
   "private": true,
   "main": [
-    "raml-request-url-editor.html",
-    "url-input.html"
+    "raml-request-url-editor.html"
   ],
   "repository": {
     "type": "git",
