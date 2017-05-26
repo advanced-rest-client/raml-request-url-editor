@@ -1,3 +1,24 @@
+<a name="0.1.9"></a>
+## [0.1.9](https://github.com/advanced-rest-client/raml-request-url-editor/compare/0.1.6...v0.1.9) (2017-05-26)
+
+
+### Fix
+
+* Fixed lint command for new linter API and ([a1f601d08e6e4afe6645a335b91af56ef3cb8629](https://github.com/advanced-rest-client/raml-request-url-editor/commit/a1f601d08e6e4afe6645a335b91af56ef3cb8629))
+
+### New
+
+* Replaces custom element that mimics input element behavior with native input control. It will loose variables highlight but rest of the functionality will be the same. ([e45e60915062830d8bdecdc066bbd4b546b93abd](https://github.com/advanced-rest-client/raml-request-url-editor/commit/e45e60915062830d8bdecdc066bbd4b546b93abd))
+
+### Update
+
+* Changed the valudation method for the URL. Updated tests ([6af984235f8f284ac9581cc61b0ab0d88f9c494c](https://github.com/advanced-rest-client/raml-request-url-editor/commit/6af984235f8f284ac9581cc61b0ab0d88f9c494c))
+* removed all references to removed url-input element ([221e8d2a7b1071e389867a2cfc38bd87f4e3bbd3](https://github.com/advanced-rest-client/raml-request-url-editor/commit/221e8d2a7b1071e389867a2cfc38bd87f4e3bbd3))
+* Updated behavior for control keys down (arrows, strl, cmd and so on). Also added scroll tracking for the input ([14aa242690960bd030a60af122e67929c9eb19cc](https://github.com/advanced-rest-client/raml-request-url-editor/commit/14aa242690960bd030a60af122e67929c9eb19cc))
+* Updated test for new API. Added more detailed tests ([2ef0167dbf5d0b4e8eabf7d7ec5726163c8b371e](https://github.com/advanced-rest-client/raml-request-url-editor/commit/2ef0167dbf5d0b4e8eabf7d7ec5726163c8b371e))
+
+
+
 <a name="0.1.8"></a>
 ## [0.1.8](https://github.com/advanced-rest-client/raml-request-url-editor/compare/0.1.6...v0.1.8) (2017-04-13)
 
