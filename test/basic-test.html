@@ -30,9 +30,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </test-fixture>
 
     <script>
-    /* global fixture, assert, forceXIfStamp */
+    /* global fixture, assert, forceXIfStamp, sinon */
     suite('basic', function() {
       var input;
+      const URL = 'https://{param}.domain.com';
+
       setup(function() {
         input = fixture('basic');
       });
@@ -43,21 +45,40 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       });
 
       test('Should not be validated', function() {
-        input.value = 'domain.com';
+        input.value = URL;
         assert.isTrue(input.invalid);
       });
 
       test('Should not be validated', function() {
-        input.value = 'https://{param}.domain.com';
+        input.value = URL;
         assert.isTrue(input.invalid);
       });
 
       test('Should display error message', function() {
-        input.value = 'https://{param}.domain.com';
+        input.value = URL;
         forceXIfStamp(input);
         var error = Polymer.dom(input.root).querySelector('paper-input-error');
         assert.ok(error, 'paper-input-error exists');
-        assert.notEqual(getComputedStyle(error).visibility, 'hidden', 'error is not visibility:hidden');
+        assert.notEqual(getComputedStyle(error).visibility, 'hidden',
+          'error is not visibility:hidden');
+      });
+
+      test('Should fire url-value-changed custom event', function() {
+        var spy = sinon.stub();
+        input.addEventListener('url-value-changed', spy);
+        input.value = URL;
+        assert.isTrue(spy.calledOnce);
+      });
+
+      test('Should update value from custom event', function() {
+        input.value = '';
+        document.dispatchEvent(new CustomEvent('url-value-changed', {
+          bubbles: true,
+          detail: {
+            value: URL
+          }
+        }));
+        assert.equal(input.value, URL);
       });
 
     });
