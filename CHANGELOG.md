@@ -1,3 +1,13 @@
+<a name="0.1.10"></a>
+## [0.1.10](https://github.com/advanced-rest-client/raml-request-url-editor/compare/0.1.9...v0.1.10) (2017-05-30)
+
+
+### Fix
+
+* Fixed dependencies versions to keep Polymer 1.x.x versions ([64f78e68e0a4a60dee6d2bde003b1b140c20ef85](https://github.com/advanced-rest-client/raml-request-url-editor/commit/64f78e68e0a4a60dee6d2bde003b1b140c20ef85))
+
+
+
 <a name="0.1.9"></a>
 ## [0.1.9](https://github.com/advanced-rest-client/raml-request-url-editor/compare/0.1.6...v0.1.9) (2017-05-26)
 
