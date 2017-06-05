@@ -1,3 +1,13 @@
+<a name="0.1.12"></a>
+## [0.1.12](https://github.com/advanced-rest-client/raml-request-url-editor/compare/0.1.11...v0.1.12) (2017-06-05)
+
+
+### Update
+
+* Replaced input's value binding with iron-input's bind-value property ([717b5f0bc99a5d62789af0e7e5383a2fab08425d](https://github.com/advanced-rest-client/raml-request-url-editor/commit/717b5f0bc99a5d62789af0e7e5383a2fab08425d))
+
+
+
 <a name="0.1.11"></a>
 ## [0.1.11](https://github.com/advanced-rest-client/raml-request-url-editor/compare/0.1.10...v0.1.11) (2017-05-30)
 
