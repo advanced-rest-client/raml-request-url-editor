@@ -1,3 +1,13 @@
+<a name="0.1.14"></a>
+## [0.1.14](https://github.com/advanced-rest-client/raml-request-url-editor/compare/0.1.13...v0.1.14) (2017-06-06)
+
+
+### Fix
+
+* Replaced attr-for-value with bind-value so the paper-input-container will not recognize proper change event ([be363c2e797a912b68b9a4049c8d306a6d2648d2](https://github.com/advanced-rest-client/raml-request-url-editor/commit/be363c2e797a912b68b9a4049c8d306a6d2648d2))
+
+
+
 <a name="0.1.13"></a>
 ## [0.1.13](https://github.com/advanced-rest-client/raml-request-url-editor/compare/0.1.12...v0.1.13) (2017-06-05)
 
