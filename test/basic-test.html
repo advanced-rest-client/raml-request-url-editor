@@ -16,9 +16,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
     <script src="../../web-component-tester/browser.js"></script>
     <script src="../../iron-test-helpers/test-helpers.js"></script>
-    <script src="../../iron-test-helpers/mock-interactions.js"></script>
-
-    <!-- Step 1: import the element to test -->
     <link rel="import" href="../raml-request-url-editor.html">
   </head>
   <body>
@@ -30,10 +27,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </test-fixture>
 
     <script>
-    /* global fixture, assert, forceXIfStamp, sinon */
+    /* global fixture, assert, TestHelpers, sinon */
     suite('basic', function() {
       var input;
-      const URL = 'https://{param}.domain.com';
+      var URL = 'https://{param}.domain.com';
 
       setup(function() {
         input = fixture('basic');
@@ -56,7 +53,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       test('Should display error message', function() {
         input.value = URL;
-        forceXIfStamp(input);
+        TestHelpers.forceXIfStamp(input);
         var error = Polymer.dom(input.root).querySelector('paper-input-error');
         assert.ok(error, 'paper-input-error exists');
         assert.notEqual(getComputedStyle(error).visibility, 'hidden',
