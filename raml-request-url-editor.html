@@ -171,13 +171,22 @@ Additionally use styles defined for the `paper-input` element.
         type: String
       },
       // If true it will not display documentation for the variable (if available).
-      skipDocs: Boolean
+      skipDocs: Boolean,
+      /**
+       * If set and the `url` property change and the `url` value is a relative
+       * url then it prefix the `url` with this value to compute full URL.
+       */
+      baseUri: String
     },
 
     hostAttributes: {
       'tabindex': -1,
       focusable: true
     },
+
+    observers: [
+      '_computeAbsoliteUrl(baseUri, url)'
+    ],
 
     ready: function() {
       this._ready = true;
@@ -217,7 +226,40 @@ Additionally use styles defined for the `paper-input` element.
       if (value === oldValue && value !== undefined) {
         return;
       }
+      if (this._isRelative(value) && this.baseUri) {
+        return;
+      }
       this.set('value', value);
+    },
+
+    _computeAbsoliteUrl: function(baseUri, url) {
+      if (!this._isRelative(url) || !baseUri) {
+        return;
+      }
+      var uri = this.baseUri;
+      if (uri[uri.length - 1] !== '/') {
+        uri += '/';
+      }
+      if (url[0] === '/') {
+        url = url.substr(1);
+      }
+      this.set('value', uri + url);
+    },
+    /**
+     * Determined if given URL is relative or absolute URL.
+     * Note: It retrns `true` if the URL is empty.
+     *
+     * @param {String} url The URL to test
+     * @return {Boolean} True if the URL is a relative URL.
+     */
+    _isRelative: function(url) {
+      if (!url || typeof url !== 'string') {
+        return true;
+      }
+      if (url.indexOf('http') !== 0) {
+        return true;
+      }
+      return false;
     },
 
     // Displays the doc for the variable.
