@@ -1,3 +1,13 @@
+<a name="0.1.16"></a>
+## [0.1.16](https://github.com/advanced-rest-client/raml-request-url-editor/compare/0.1.15...0.1.16) (2017-08-14)
+
+
+### New
+
+* `baseUri` for https://github.com/mulesoft/api-console/issues/502 ([77d169b43f7e917473524a9186e7e5a0b29e8c87](https://github.com/advanced-rest-client/raml-request-url-editor/commit/77d169b43f7e917473524a9186e7e5a0b29e8c87))
+
+
+
 <a name="0.1.15"></a>
 ## [0.1.15](https://github.com/advanced-rest-client/raml-request-url-editor/compare/0.1.14...v0.1.15) (2017-06-06)
 
