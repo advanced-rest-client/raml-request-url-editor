@@ -47,10 +47,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <body unresolved>
   <template is="dom-bind" id="app">
     <raml-demo-page selected-object="{{selected}}" is-method="{{isMethod}}">
+      <paper-item data-url$="[[testRaml]]">Test case (RAML 1.0)</paper-item>
       <h1>The raml-request-url-editor element</h1>
       <div main>
         <template is="dom-if" if="[[isMethod]]">
-          <raml-request-url-editor auto-validate required uri-parameters="[[selected.allUriParameters]]" value="{{url}}" url="[[selected.absoluteUri]]"></raml-request-url-editor>
+          <raml-request-url-editor auto-validate required uri-parameters="[[selected.allUriParameters]]" value="{{url}}" url="[[selected.absoluteUri]]" base-uri="[[baseUri]]"></raml-request-url-editor>
           <h4>Current URL value</h4>
           <output>[[url]]</output>
         </template>
@@ -58,6 +59,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </div>
     </raml-demo-page>
   </template>
+  <script>
+  (function(scope) {
+    scope.baseUri = location.origin;
+
+    var path = location.pathname;
+    if (~path.indexOf('.html')) {
+      path = path.substr(0, path.lastIndexOf('/') + 1);
+    }
+    var ramlRoot = location.protocol + '//' + location.host + path.replace('demo', 'test');
+    scope.testRaml = ramlRoot + 'test.raml';
+  })(document.getElementById('app'));
+  </script>
 </body>
 
 </html>
