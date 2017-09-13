@@ -85,14 +85,15 @@ Additionally use styles defined for the `paper-input` element.
       display: block;
       @apply(--raml-request-url-editor);
     }
-
     .markdown-body {
       @apply(--arc-font-body1);
       margin-top: 12px;
       color: rgba(0, 0, 0, 0.54);
       @apply(--raml-request-url-editor-documentation);
     }
-
+    .paper-input-input {
+      @apply(--raml-request-url-editor-input);
+    }
     </style>
     <paper-input-container
       no-label-float="[[noLabelFloat]]"
