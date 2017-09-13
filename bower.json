@@ -47,7 +47,7 @@
     "test",
     "tasks"
   ],
-  "version": "0.1.17",
+  "version": "0.1.18",
   "resolutions": {
     "iron-input": "^1.0.0",
     "iron-form-element-behavior": "^1.0.6"
