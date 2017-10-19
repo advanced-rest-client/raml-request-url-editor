@@ -57,6 +57,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         assert.equal(input.value, url);
       });
+
+      test('Should compute absolute URL', function() {
+        var base = 'api.domain.com/';
+        input.baseUri = base;
+        input.url = 'api/resource';
+        assert.equal(input.value, 'api.domain.com/api/resource');
+      });
     });
     </script>
 
