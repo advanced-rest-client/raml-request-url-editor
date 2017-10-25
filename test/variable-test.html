@@ -37,8 +37,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     /* global fixture, assert, forceXIfStamp */
     suite('variable', function() {
       var input;
-      const URL = 'https://{param}.domain.com';
-      const URI_PARAMS = [{
+      var baseURI = 'https://{param}.domain.com';
+      var basePath = '/path/{var}';
+      var URI_PARAMS = [{
         'name': 'param',
         'type': 'string',
         'required': true,
@@ -46,17 +47,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         'pattern': '(a|b|c)',
         'key': 'param'
       }];
-      const VARIABLE = 'param';
-
+      var VARIABLE = 'param';
       suite('variable', function() {
         setup(function() {
           input = fixture('basic');
-          input.uriParameters = URI_PARAMS;
-          input.url = URL;
+          input.baseUri = baseURI;
+          input.endpointUri = basePath;
+          input.uriModel = URI_PARAMS;
+          input.queryModel = [];
         });
 
         test('Value should be set', function() {
-          assert.equal(input.value, URL);
+          assert.equal(input.value, 'https://{param}.domain.com/path/{var}');
         });
 
         test('Should compute variable name', function() {

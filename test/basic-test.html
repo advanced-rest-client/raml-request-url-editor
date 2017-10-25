@@ -78,6 +78,64 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         assert.equal(input.value, URL);
       });
 
+      test('Computes _fullUri', function() {
+        input.baseUri = URL;
+        input.endpointUri = '/path';
+        assert.equal(input._fullUri, URL + '/path');
+      });
+
+      test('Computes urlParams', function() {
+        input.baseUri = URL;
+        input.endpointUri = '/path/{otherparam}';
+
+        assert.isArray(input.urlParams, 'urlParams is an array');
+        assert.lengthOf(input.urlParams, 2, 'urlParams has 2 items');
+        assert.equal(input.urlParams[0], 'param', 'Param #1 is "param"');
+        assert.equal(input.urlParams[1], 'otherparam', 'Param #2 is "otherparam"');
+      });
+
+      test('Computes `urlSearchRegexp`', function() {
+        input.baseUri = URL;
+        input.endpointUri = '/path/{otherparam}';
+
+        assert.typeOf(input.urlSearchRegexp, 'regexp', 'urlSearchRegexp is computed');
+      });
+    });
+
+    suite('Array values', function() {
+      var input;
+      var baseURI = 'https://{param}.domain.com';
+      var basePath = '/path/{var}';
+      var querylModel;
+
+      setup(function() {
+        input = fixture('basic');
+        input.baseUri = baseURI;
+        input.endpointUri = basePath;
+        input.set('uriModel', []);
+        querylModel = [{
+          value: 'test',
+          name: 'test',
+          key: 'test'
+        }, {
+          value: ['test'],
+          name: 'arrayParameter',
+          key: 'arrayParameter'
+        }];
+      });
+
+      test('Produces URL with single array value', function() {
+        input.set('queryModel', querylModel);
+        var match = input.value.match(/&arrayParameter=/g);
+        assert.equal(match.length, 1);
+      });
+
+      test('Element produces URL with array values', function() {
+        querylModel[1].value.push('test2');
+        input.set('queryModel', querylModel);
+        var match = input.value.match(/&arrayParameter=/g);
+        assert.equal(match.length, 2);
+      });
     });
     </script>
 
