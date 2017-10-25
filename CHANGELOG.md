@@ -1,3 +1,13 @@
+<a name="0.2.1"></a>
+## [0.2.1](https://github.com/advanced-rest-client/raml-request-url-editor/compare/0.1.18...0.2.1) (2017-10-25)
+
+
+### Breaking
+
+* Changes for https://github.com/mulesoft/api-console/issues/535 ([bc658647344e1cdf4756d50eb504102686ff1ffb](https://github.com/advanced-rest-client/raml-request-url-editor/commit/bc658647344e1cdf4756d50eb504102686ff1ffb))
+
+
+
 <a name="0.1.19"></a>
 ## [0.1.19](https://github.com/advanced-rest-client/raml-request-url-editor/compare/0.1.18...0.1.19) (2017-09-13)
 
