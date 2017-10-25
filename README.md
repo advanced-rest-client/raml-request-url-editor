@@ -2,35 +2,83 @@
 
 # raml-request-url-editor
 
-`<raml-request-url-editor>` An URL editor for the RAML request panel
+`<raml-request-url-editor>` An URL editor for the RAML request panel.
 
-Use this input element to provide URI variables support.
-If the `uriParameters` array is set, and the user click on the variable name
-then the documentation for this variable will be displayed.
-This behavior can be turned off by setting `skip-docs` attribute (or `skipDocs`
-property).
+The element renders an input that produces final URL for a request.
+It expects the `base-uri` and `endpoint-uri` properties to be set to produce any
+output. This properties can be read from the RAML.
 
-The element has custom validation. If the value contains a variable string
-("{some string}") then it will display a validation error.
+The editor works with `raml-request-parameters-model` element. URI and query
+parameters model computed by the `raml-request-parameters-model` element.
+When set it adds support for updating query and URI parameters from other
+parts of the application (like `raml-request-parameters-editor`).
+If the models are not set then this element behaves as regular input.
 
-### Example
+### Example of use (Polymer app)
+
 ```html
-<raml-request-url-editor auto-validate required></raml-request-url-editor>
-```
-```javascript
+<raml-request-url-editor auto-validate required value="{{url}}"
+  base-uri="[[raml.baseUri]]"
+  endpoint-uri="[[raml.selectedMethod.relativeUri]]"
+  query-model="[[qm]]"
+  uri-model="[[um]]"></raml-request-url-editor>
+
+<raml-request-parameteres-model
+  query-parameters="[[raml.queryParameters]]"
+  uri-parameters="[[raml.allUriParameters]]"
+  query-model="{{qm}}"
+  uri-model="{{um}}"></raml-request-parameteres-model>
+
+<script>
 var input = document.querySelector('raml-request-url-editor');
 input.addEventListener('value-changed', function(e) {
-  if (input.validate())
+  if (input.validate()) {
     var url = e.detail.value;
+    console.log(url);
+  }
 });
+</script>
 ```
 
-When the `value` of this control change then the `url-value-changed` event will
-be fired. Also, if other element or the application will send this event then
-the value of this form control will be updated. This is a way to update URL
-value without directly accessing the element.
+### Example for pure JavaScript
 
-```jsvascript
+```html
+<raml-request-url-editor auto-validate required id="editor"></raml-request-url-editor>
+<raml-request-parameteres-model id="model"></raml-request-parameteres-model>
+
+<script>
+var model = document.getElementById('model');
+var editor = document.getElementById('url');
+
+function passDataToView(e) {
+  var type = e.type;
+  type = type.replace('-changed', '');
+  var property = type.replace(/-[a-z]/g, function(m) {
+    return m[1].toUpperCase();
+  });
+  editor[property] = e.detail.value;
+}
+
+model.addEventListener('query-model-changed', passDataToView);
+model.addEventListener('uri-model-changed', passDataToView);
+
+editor.addEventListener('value-changed', function(e) {
+  console.log(e.detail.value);
+});
+
+var raml = await getRamlSomehow();
+var selected = raml.resources[0].methods[0];
+model.queryParameters = selected.queryParameters;
+model.uriParameters = selected.allUriParameters;
+editor.baseUri = raml.baseUri;
+editor.endpointUri = selected.relativeUri;
+</script>
+```
+
+The element listens for `url-value-changed` event and updated the URL value
+from event's detail object.
+
+```javascript
 document.dispatchEvent(new CustomEvent('url-value-changed', {
   bubbles: true,
   detail: {
@@ -39,7 +87,15 @@ document.dispatchEvent(new CustomEvent('url-value-changed', {
 }));
 ```
 
-Firing this event will update the value to `http://www.domain.com`.
+Firing this event updates the value to `http://www.domain.com`.
+
+### Validation
+
+This element implements `Polymer.IronValidatableBehavior`. You can call `validate()`
+function to check if the form is valid.
+An attribute `invalid` is set if the form is invalid. It can be used for
+styling. The form is invalid if the value contains URL variables.
+
 
 ### Styling
 `<raml-request-url-editor>` provides the following custom properties and mixins for styling:

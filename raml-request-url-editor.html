@@ -1,6 +1,6 @@
 <!--
 @license
-Copyright 2016 The Advanced REST client authors <arc@mulesoft.com>
+Copyright 2017 The Advanced REST client authors <arc@mulesoft.com>
 Licensed under the Apache License, Version 2.0 (the "License"); you may not
 use this file except in compliance with the License. You may obtain a copy of
 the License at
@@ -21,37 +21,86 @@ the License.
 <link rel="import" href="../markdown-styles/markdown-styles.html">
 <link rel="import" href="../paper-styles/typography.html">
 <link rel="import" href="../iron-input/iron-input.html">
+<link rel="import" href="../events-target-behavior/events-target-behavior.html">
 
 <!--
-`<raml-request-url-editor>` An URL editor for the RAML request panel
+`<raml-request-url-editor>` An URL editor for the RAML request panel.
 
-Use this input element to provide URI variables support.
-If the `uriParameters` array is set, and the user click on the variable name
-then the documentation for this variable will be displayed.
-This behavior can be turned off by setting `skip-docs` attribute (or `skipDocs`
-property).
+The element renders an input that produces final URL for a request.
+It expects the `base-uri` and `endpoint-uri` properties to be set to produce any
+output. This properties can be read from the RAML.
 
-The element has custom validation. If the value contains a variable string
-("{some string}") then it will display a validation error.
+The editor works with `raml-request-parameters-model` element. URI and query
+parameters model computed by the `raml-request-parameters-model` element.
+When set it adds support for updating query and URI parameters from other
+parts of the application (like `raml-request-parameters-editor`).
+If the models are not set then this element behaves as regular input.
 
-### Example
+### Example of use (Polymer app)
+
 ```html
-<raml-request-url-editor auto-validate required></raml-request-url-editor>
-```
-```javascript
+<raml-request-url-editor auto-validate required value="{{url}}"
+  base-uri="[[raml.baseUri]]"
+  endpoint-uri="[[raml.selectedMethod.relativeUri]]"
+  query-model="[[qm]]"
+  uri-model="[[um]]"></raml-request-url-editor>
+
+<raml-request-parameteres-model
+  query-parameters="[[raml.queryParameters]]"
+  uri-parameters="[[raml.allUriParameters]]"
+  query-model="{{qm}}"
+  uri-model="{{um}}"></raml-request-parameteres-model>
+
+<script>
 var input = document.querySelector('raml-request-url-editor');
 input.addEventListener('value-changed', function(e) {
-  if (input.validate())
+  if (input.validate()) {
     var url = e.detail.value;
+    console.log(url);
+  }
 });
+</script>
 ```
 
-When the `value` of this control change then the `url-value-changed` event will
-be fired. Also, if other element or the application will send this event then
-the value of this form control will be updated. This is a way to update URL
-value without directly accessing the element.
+### Example for pure JavaScript
 
-```jsvascript
+```html
+<raml-request-url-editor auto-validate required id="editor"></raml-request-url-editor>
+<raml-request-parameteres-model id="model"></raml-request-parameteres-model>
+
+<script>
+var model = document.getElementById('model');
+var editor = document.getElementById('url');
+
+function passDataToView(e) {
+  var type = e.type;
+  type = type.replace('-changed', '');
+  var property = type.replace(/-[a-z]/g, function(m) {
+    return m[1].toUpperCase();
+  });
+  editor[property] = e.detail.value;
+}
+
+model.addEventListener('query-model-changed', passDataToView);
+model.addEventListener('uri-model-changed', passDataToView);
+
+editor.addEventListener('value-changed', function(e) {
+  console.log(e.detail.value);
+});
+
+var raml = await getRamlSomehow();
+var selected = raml.resources[0].methods[0];
+model.queryParameters = selected.queryParameters;
+model.uriParameters = selected.allUriParameters;
+editor.baseUri = raml.baseUri;
+editor.endpointUri = selected.relativeUri;
+</script>
+```
+
+The element listens for `url-value-changed` event and updated the URL value
+from event's detail object.
+
+```javascript
 document.dispatchEvent(new CustomEvent('url-value-changed', {
   bubbles: true,
   detail: {
@@ -60,7 +109,15 @@ document.dispatchEvent(new CustomEvent('url-value-changed', {
 }));
 ```
 
-Firing this event will update the value to `http://www.domain.com`.
+Firing this event updates the value to `http://www.domain.com`.
+
+### Validation
+
+This element implements `Polymer.IronValidatableBehavior`. You can call `validate()`
+function to check if the form is valid.
+An attribute `invalid` is set if the form is invalid. It can be used for
+styling. The form is invalid if the value contains URL variables.
+
 
 ### Styling
 `<raml-request-url-editor>` provides the following custom properties and mixins for styling:
@@ -113,7 +170,8 @@ Additionally use styles defined for the `paper-input` element.
         readonly$="[[readonly]]"
         type="url"
         on-tap="_inputTap"
-        on-blur="_onElementBlur"/>
+        on-blur="_onElementBlur"
+        on-input="__userInputHandler"/>
       <template is="dom-if" if="[[errorMessage]]">
         <paper-input-error>[[errorMessage]]</paper-input-error>
       </template>
@@ -131,7 +189,8 @@ Additionally use styles defined for the `paper-input` element.
     behaviors: [
       Polymer.PaperInputBehavior,
       Polymer.IronValidatableBehavior,
-      Polymer.IronFormElementBehavior
+      Polymer.IronFormElementBehavior,
+      ArcBehaviors.EventsTargetBehavior
     ],
 
     /**
@@ -143,13 +202,6 @@ Additionally use styles defined for the `paper-input` element.
      */
 
     properties: {
-      // A list of RAML defined URI parameters
-      uriParameters: Array,
-      // A RAML defined absolute URL for this endpoint. It may contain variables
-      url: {
-        type: String,
-        observer: '_onUrlChanged'
-      },
       /**
        * The label for this input.
        */
@@ -163,6 +215,7 @@ Additionally use styles defined for the `paper-input` element.
         notify: true,
         observer: '_onValueChanged'
       },
+      // An error message to display
       errorMessage: {
         type: String,
         value: 'Fill the URI parameters before making a request'
@@ -174,10 +227,56 @@ Additionally use styles defined for the `paper-input` element.
       // If true it will not display documentation for the variable (if available).
       skipDocs: Boolean,
       /**
-       * If set and the `url` property change and the `url` value is a relative
-       * url then it prefix the `url` with this value to compute full URL.
+       * Value or RAML's base URI property.
+       *
+       * Note, the element doesn't check if `baseUri` is relative or not.
+       * Hosting application have to take care of that.
        */
-      baseUri: String
+      baseUri: String,
+      /**
+       * Currently selected endpoint relative URI. It is available in RAML
+       * definition.
+       */
+      endpointUri: String,
+      // Computed value, sum of `baseUri` and `endpointUri`
+      _fullUri: {
+        computed: '_computeFullUrl(baseUri, endpointUri)'
+      },
+      /**
+       * Computed query properties model.
+       * Use `raml-request-parameteres-model` to compute model for the view.
+       */
+      queryModel: {
+        type: Array,
+        value: function() {
+          return [];
+        }
+      },
+      /**
+       * Computed URI properties model.
+       * Use `raml-request-parameteres-model` to compute model for the view.
+       */
+      uriModel: {
+        type: Array,
+        value: function() {
+          return [];
+        }
+      },
+      /**
+       * Computed, ordered list of URL variables in the URI string.
+       */
+      urlParams: {
+        type: Array,
+        computed: '_computeUrlParams(_fullUri)'
+      },
+      /**
+       * Computed regexp for the current `_fullUri` value to search for the
+       * URI parameters.
+       */
+      urlSearchRegexp: {
+        type: RegExp,
+        computed: '_computeUrlRegexp(_fullUri)'
+      },
     },
 
     hostAttributes: {
@@ -186,7 +285,9 @@ Additionally use styles defined for the `paper-input` element.
     },
 
     observers: [
-      '_computeAbsoliteUrl(baseUri, url)'
+      '_computeValueChanged(_fullUri, queryModel.*, uriModel.*)',
+      '_notifyModelChanged(queryModel.*)',
+      '_notifyModelChanged(uriModel.*)'
     ],
 
     ready: function() {
@@ -197,12 +298,282 @@ Additionally use styles defined for the `paper-input` element.
       }
     },
 
-    attached: function() {
-      this.listen(window, 'url-value-changed', '_extValueChangedHandler');
+    _attachListeners: function(node) {
+      this.listen(node, 'url-value-changed', '_extValueChangedHandler');
     },
 
-    detached: function() {
-      this.unlisten(window, 'url-value-changed', '_extValueChangedHandler');
+    _detachListeners: function(node) {
+      this.unlisten(node, 'url-value-changed', '_extValueChangedHandler');
+    },
+    /**
+     * Computes endpoint's full URI with (possibly) variables in it.
+     *
+     * @param {String} baseUri API base URI
+     * @param {String} endpointUri Endpoint relative URI to `baseUri`
+     * @return {String} A full URI for the endpoint.
+     */
+    _computeFullUrl: function(baseUri, endpointUri) {
+      if (!endpointUri) {
+        endpointUri = '/';
+      }
+      if (endpointUri[0] !== '/') {
+        endpointUri = '/' + endpointUri;
+      }
+      if (!baseUri) {
+        return endpointUri;
+      }
+      if (baseUri[baseUri.length - 1] === '/') {
+        baseUri = baseUri.substr(0, baseUri.length - 1);
+      }
+      return baseUri + endpointUri;
+    },
+
+    _computeValueChanged: function(_fullUri, queryRecord, uriRecord) {
+      this._computeValue(queryRecord.base, uriRecord.base, _fullUri);
+    },
+
+    /**
+     * Computes url value from current `baseUri` and query/uri models.
+     *
+     * @param {Array} queryModel Query parameters model
+     * @param {Array} uriModel Uri parameters model.
+     * @param {String} uri Current endpoint uri.
+     */
+    _computeValue: function(queryModel, uriModel, uri) {
+      if (!uri) {
+        this.set('value', undefined);
+        return;
+      }
+      uri = this._applyUriParams(uri, uriModel);
+      uri = this._applyQueryParams(uri, queryModel);
+      this.set('value', uri);
+    },
+
+    /**
+     * Creates a map of serialized values from a model.
+     * It is a replacemenet for `iron-form` serialize function which
+     * can't be used here because this function is called before local DOM
+     * is ready and therefore form is not set.
+     *
+     * @param {Array} model Model to compute.
+     * @return {Object} Map of serialized values.
+     */
+    _formValuesFromModel: function(model) {
+      var result = {};
+      if (!model || !model.length) {
+        return result;
+      }
+      model.forEach(function(item) {
+        result[item.key] = item.value;
+      });
+      return result;
+    },
+
+    /**
+     * Applies URI parameters to the URL.
+     *
+     * @param {String} url An URL to apply the params to
+     * @param {Array} model Uri parameters model.
+     * @return {String} The URL.
+     */
+    _applyUriParams: function(url, model) {
+      var uriParams = this._formValuesFromModel(model);
+      for (var paramName in uriParams) {
+        var value = uriParams[paramName];
+        if (!value) {
+          continue;
+        }
+        value = String(value);
+        if (value.trim() === '') {
+          continue;
+        }
+        value = this._wwwFormUrlEncodePiece(value);
+        var re = new RegExp('{' + paramName + '}');
+        url = url.replace(re, value);
+      }
+      return url;
+    },
+    /**
+     * Applies query parameters to the URL.
+     * Query parameters that are not required by the API spec and don't have value
+     * are removed from the URL. Parameters that are required and don't have
+     * value are set to the URL but with empty value.
+     *
+     * @param {String} url An URL to apply the params to
+     * @param {Array} model Query parameters model.
+     * @return {String} The URL.
+     */
+    _applyQueryParams: function(url, model) {
+      var params = this._formValuesFromModel(model);
+      var items = this._computeQueryItems(params);
+      params = this._wwwFormUrlEncode(items);
+      if (!params) {
+        return url;
+      }
+      url += (url.indexOf('?') === -1) ? '?' : '&';
+      url += params;
+      return url;
+    },
+    /**
+     * Computes query parameters list of items containing `name` and `value`
+     * properties to use to build query string.
+     *
+     * This function may change the `params` map.
+     *
+     * @param {Object} params Map of query model properties.
+     * @return {Array} List of query parameters.
+     */
+    _computeQueryItems: function(params) {
+      var items = [];
+      for (var paramName in params) {
+        var value = params[paramName];
+        if (!value && value !== 0 && value !== null && value !== false) {
+          continue;
+        }
+        var isArray = false;
+        if (value instanceof Array) {
+          isArray = true;
+          if (!value.length || (value.length === 1 && !value[0])) {
+            continue;
+          }
+        } else {
+          value = String(value);
+          if (value.trim() === '') {
+            delete params[paramName];
+            continue;
+          }
+        }
+        if (isArray) {
+          for (var i = 0, len = value.length; i < len; i++) {
+            if (value || value === 0 || value === false) {
+              items.push({
+                name: paramName,
+                value: value[i]
+              });
+            }
+          }
+        } else {
+          items.push({
+            name: paramName,
+            value: value
+          });
+        }
+      }
+      return items;
+    },
+
+    /**
+     * @param {Array} object The list of objects to encode as
+     * x-www-form-urlencoded string. Each entry should have `name` and `value`
+     * properties.
+     * @return {string} .
+     */
+    _wwwFormUrlEncode: function(object) {
+      if (!object || !object.length) {
+        return '';
+      }
+      var pieces = object.map(function(item) {
+        return this._wwwFormUrlEncodePiece(item.name) + '=' +
+          this._wwwFormUrlEncodePiece(item.value);
+      }, this);
+      return pieces.join('&');
+    },
+
+    /**
+     * @param {*} str A key or value to encode as x-www-form-urlencoded.
+     * @return {string} .
+     */
+    _wwwFormUrlEncodePiece: function(str) {
+      // Spec says to normalize newlines to \r\n and replace %20 spaces with +.
+      // jQuery does this as well, so this is likely to be widely compatible.
+      if (!str) {
+        return '';
+      }
+      return encodeURIComponent(str.toString().replace(/\r?\n/g, '\r\n'))
+        .replace(/%20/g, '+');
+    },
+    /**
+     * Updates URI / query parameters model from on user input.
+     *
+     * @param {Event} e Input event
+     */
+    __userInputHandler: function(e) {
+      var value = e.target.value;
+      var matches;
+      var uriParams = this.urlParams;
+      var uriRegexp = this.urlSearchRegexp;
+
+      if (uriParams && uriRegexp) {
+        matches = value.match(uriRegexp);
+        if (matches) {
+          matches.shift();
+          this._applyUriValues(matches, uriParams);
+        }
+      }
+      matches = value.match(/[^&?]*?=[^&?]*/g);
+      if (!matches) {
+        return;
+      }
+      var params = {};
+      matches.forEach(function(item) {
+        var parts = item.split('=');
+        var name = parts[0];
+        if (name in params) {
+          if (!(params[name] instanceof Array)) {
+            params[name] = [params[name]];
+          }
+          params[name].push(parts[1]);
+        } else {
+          params[name] = parts[1];
+        }
+      });
+      this._applyQueryParamsValues(params);
+    },
+
+    /**
+     * Applies values from the `values` array to the uri parametes which names are in the `names`
+     * array.
+     * Both lists are ordered list of paramerters.
+     *
+     * @param {Array<String>} values Values for the parameters
+     * @param {Array<String>} names List of variables names (uri parameters).
+     */
+    _applyUriValues: function(values, names) {
+      var up = this.uriModel;
+      var len = up.length;
+      names.forEach(function(item, index) {
+        for (var i = 0; i < len; i++) {
+          if (up[i].name === item) {
+            this.fire('uri-parameter-changed', {
+              name: up[i].name,
+              value: values[index]
+            });
+            break;
+          }
+        }
+      }, this);
+    },
+
+    /**
+     * Applies query parameters values to the render list.
+     *
+     * @param {Object} map A map where keys are names of the parameters in the
+     * `queryModel` list
+     */
+    _applyQueryParamsValues: function(map) {
+      var qp = this.queryModel;
+      var len = qp.length;
+      for (var _key in map) {
+        for (var i = 0; i < len; i++) {
+          if (qp[i].name === _key) {
+            this.fire('query-parameter-changed', {
+              name: qp[i].name,
+              value: map[_key]
+            });
+            break;
+          }
+        }
+      }
     },
 
     /**
@@ -218,57 +589,12 @@ Additionally use styles defined for the `paper-input` element.
       this._handleAutoValidate();
     },
 
-    /**
-     * If called it mean that the method has changed. And possibly the url value.
-     * If the old value id the same as the new value it means that the user switched a method
-     * staying with the same andpoint. Therefore nothing needs to be done.
-     */
-    _onUrlChanged: function(value, oldValue) {
-      if (value === oldValue && value !== undefined) {
-        return;
-      }
-      if (this._isRelative(value) && this.baseUri) {
-        return;
-      }
-      this.set('value', value);
-    },
-
-    _computeAbsoliteUrl: function(baseUri, url) {
-      if (!this._isRelative(url) || !baseUri) {
-        return;
-      }
-      var uri = this.baseUri;
-      if (uri[uri.length - 1] !== '/') {
-        uri += '/';
-      }
-      if (url[0] === '/') {
-        url = url.substr(1);
-      }
-      this.set('value', uri + url);
-    },
-    /**
-     * Determined if given URL is relative or absolute URL.
-     * Note: It retrns `true` if the URL is empty.
-     *
-     * @param {String} url The URL to test
-     * @return {Boolean} True if the URL is a relative URL.
-     */
-    _isRelative: function(url) {
-      if (!url || typeof url !== 'string') {
-        return true;
-      }
-      if (url.indexOf('http') !== 0) {
-        return true;
-      }
-      return false;
-    },
-
     // Displays the doc for the variable.
     _displayVariableDoc: function(id) {
       if (this.skipDocs) {
         return;
       }
-      var up = this.uriParameters;
+      var up = this.uriModel;
       if (!id || !up) {
         this.documentation = '';
         return;
@@ -400,6 +726,78 @@ Additionally use styles defined for the `paper-input` element.
       var variable = value.substr(leftBracketPos + 1,
         rightBracketPos - leftBracketPos - 1);
       return variable;
+    },
+
+    /**
+     * Creates a regular expression from the `_fullUri` to match the
+     * parameters in the `value` url.
+     *
+     * @param {String} url Enpoint's absolute URL with (possibly) parameters.
+     * @return {String} A RegExp that can be used to search for parameters values.
+     */
+    _computeUrlRegexp: function(url) {
+      if (!url) {
+        return null;
+      }
+      url = url.replace(/(\.|\/)/g, '\\$1');
+      url = url.replace(/{\w+}/g, '([a-zA-Z0-9\\$\\-_\\.~\\+!\'\\(\\)\\*]+)');
+      return new RegExp(url);
+    },
+    /**
+     * Computes ordered list of parameters applied to the `_fullUri`.
+     * For example the URL: `http://{environment}.domain.com/{apiVersion}/`
+     *
+     * will be mapped to
+     * ```
+     * [
+     *   "environment",
+     *   "apiVersion"
+     * ]
+     * ```
+     *
+     * @param {String} url The URL to test for the parameters.
+     * @return {Array|null} An ordered list of parameters or null if none found.
+     */
+    _computeUrlParams: function(url) {
+      if (!url) {
+        return null;
+      }
+      var paramsNames = url.match(/\{\w+\}/g);
+      if (paramsNames) {
+        paramsNames = paramsNames.map(function(item) {
+          return item.substr(1, item.length - 2);
+        });
+      }
+      return paramsNames;
+    },
+    /**
+     * Dispatches `quri/query-parameter-changed` custom event when a change in
+     * the model value has been detected.
+     *
+     * @param {[type]} record [description]
+     * @return {[type]} [description]
+     */
+    _notifyModelChanged: function(record) {
+      if (!record) {
+        return;
+      }
+      if (record.path === 'queryModel' || record.path === 'uriModel') {
+        return;
+      }
+      if (record.path.indexOf('value') < 2) {
+        return;
+      }
+      var item = record.path.substr(0, record.path.lastIndexOf('.'));
+      if (!item) {
+        console.warn('Unable to notify parameter change. Unknown path', record.path);
+        return;
+      }
+      var type = record.path.substr(0, record.path.indexOf('.'));
+      var formType = type === 'queryModel' ? 'query' : 'uri';
+      this.fire(formType + '-parameter-changed', {
+        name: item.name,
+        value: item.value
+      });
     }
   });
   </script>
