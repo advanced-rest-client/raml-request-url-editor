@@ -291,7 +291,7 @@ Additionally use styles defined for the `paper-input` element.
     ],
 
     ready: function() {
-      this._ready = true;
+      this._elementReady = true;
       // If there's an initial input, validate it.
       if (this.value) {
         this._handleAutoValidate();
@@ -580,7 +580,7 @@ Additionally use styles defined for the `paper-input` element.
      * A handler that is called on input
      */
     _onValueChanged: function() {
-      if (!this._ready) {
+      if (!this._elementReady) {
         return;
       }
       this.fire('url-value-changed', {
