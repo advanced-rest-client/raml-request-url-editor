@@ -1,3 +1,13 @@
+<a name="0.2.2"></a>
+## [0.2.2](https://github.com/advanced-rest-client/raml-request-url-editor/compare/0.2.1...0.2.2) (2017-12-04)
+
+
+### Fix
+
+* Updated protected variable name to a one that is not defined.  ([a8b3c1c498ba630183f3f0ce57e4dded352aa861](https://github.com/advanced-rest-client/raml-request-url-editor/commit/a8b3c1c498ba630183f3f0ce57e4dded352aa861))
+
+
+
 <a name="0.2.1"></a>
 ## [0.2.1](https://github.com/advanced-rest-client/raml-request-url-editor/compare/0.1.18...0.2.1) (2017-10-25)
 
