@@ -1,6 +1,6 @@
 {
   "name": "raml-request-url-editor",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "An URL editor for the RAML request panel",
   "authors": [
     "The Advanced REST client authors <arc@mulesoft.com>"
