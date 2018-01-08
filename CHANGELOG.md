@@ -1,3 +1,13 @@
+<a name="0.2.4"></a>
+## [0.2.4](https://github.com/advanced-rest-client/raml-request-url-editor/compare/0.2.3...0.2.4) (2018-01-08)
+
+
+### Fix
+
+* Added missing dev dependency. ([429c55ddfb3baa6905a47187274d99a382a97daa](https://github.com/advanced-rest-client/raml-request-url-editor/commit/429c55ddfb3baa6905a47187274d99a382a97daa))
+
+
+
 <a name="0.2.3"></a>
 ## [0.2.3](https://github.com/advanced-rest-client/raml-request-url-editor/compare/0.2.2...0.2.3) (2017-12-04)
 
