@@ -368,7 +368,7 @@ Additionally use styles defined for the `paper-input` element.
         if (!value && item.required) {
           value = '';
         } else if (!item.required) {
-          if (!value && value === 0 && value !== false && value !== null) {
+          if (!value && value !== 0 && value !== false && value !== null) {
             value = undefined;
           }
         }
