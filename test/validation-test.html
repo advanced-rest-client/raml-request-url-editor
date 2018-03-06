@@ -1,0 +1,215 @@
+<!doctype html>
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+    <script src="../../iron-test-helpers/test-helpers.js"></script>
+    <link rel="import" href="../../raml-request-parameters-editor/raml-request-parameters-model.html">
+    <link rel="import" href="../raml-request-url-editor.html">
+  </head>
+  <body>
+    <raml-request-parameters-model id="modelGen"></raml-request-parameters-model>
+
+    <test-fixture id="basic">
+      <template>
+        <raml-request-url-editor></raml-request-url-editor>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="required">
+      <template>
+        <raml-request-url-editor required error-message="error"></raml-request-url-editor>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="auto">
+      <template>
+        <raml-request-url-editor auto-validate required error-message="error"></raml-request-url-editor>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="events">
+      <template>
+        <raml-request-url-editor auto-validate required base-uri="https://domain.com" endpoint-uri="/{path}"></raml-request-url-editor>
+      </template>
+    </test-fixture>
+
+    <script>
+    /* global fixture, assert, TestHelpers, sinon */
+    suite('_getValidity()', function() {
+      suite('Not required field', function() {
+        var input;
+        setup(function() {
+          input = fixture('basic');
+        });
+
+        test('Valid when not required end empty value', function() {
+          input.value = '';
+          var result = input._getValidity();
+          assert.isTrue(result);
+        });
+
+        test('Valid when value is undefined', function() {
+          input.value = undefined;
+          var result = input._getValidity();
+          assert.isTrue(result);
+        });
+
+        test('Invalid for variables', function() {
+          input.value = '{test}';
+          var result = input._getValidity();
+          assert.isFalse(result);
+        });
+
+        test('Invalid for invalid URL value', function() {
+          input.value = 'some value not URL';
+          var result = input._getValidity();
+          assert.isFalse(result);
+        });
+      });
+
+      suite('Required field', function() {
+        var input;
+        setup(function() {
+          input = fixture('required');
+        });
+
+        test('Invalid when empty value', function() {
+          input.value = '';
+          var result = input._getValidity();
+          assert.isFalse(result);
+        });
+
+        test('Valid when value is undefined', function() {
+          input.value = undefined;
+          var result = input._getValidity();
+          assert.isTrue(result);
+        });
+      });
+    });
+
+    suite('Auto validation', function() {
+      var input;
+      setup(function() {
+        input = fixture('auto');
+      });
+
+      test('Valid for empty initial value', function() {
+        assert.isFalse(input.invalid);
+      });
+
+      test('Valid for valid value', function() {
+        input.value = 'https://domain.com?a=b&param=value#1232344';
+        assert.isFalse(input.invalid);
+      });
+
+      test('Invalid for variables', function() {
+        input.value = 'https://domain.com?{a}=b&param=value#1232344';
+        assert.isTrue(input.invalid);
+      });
+
+      test('Invalid when chanding value back to empty stirng', function() {
+        input.value = 'https://domain.com';
+        assert.isFalse(input.invalid);
+        input.value = '';
+        assert.isTrue(input.invalid);
+      });
+
+      test('Invalid for invalid URL value', function() {
+        input.value = 'some value not URL';
+        assert.isTrue(input.invalid);
+      });
+    });
+
+    suite('Validation with query events', function() {
+      var input;
+      var invalidUrl = 'https://domain.com/{path}/?{param}=value';
+      var uriModel = {
+        key: 'path',
+        name: 'path',
+        required: true,
+        type: 'string'
+      };
+      var queryModel = {
+        description: '',
+        key: 'param',
+        name: 'param',
+        required: true,
+        type: 'string'
+      };
+      function getModelGenerator() {
+        return document.getElementById('modelGen');
+      }
+
+      function uriChanged(e) {
+        if (e.detail.path) {
+          input.set(e.detail.path, e.detail.value);
+        } else {
+          input.uriModel = e.detail.value;
+        }
+      }
+
+      function queryChanged(e) {
+        if (e.detail.path) {
+          input.set(e.detail.path, e.detail.value);
+        } else {
+          input.queryModel = e.detail.value;
+        }
+      }
+
+      suiteSetup(function() {
+        var mg = getModelGenerator();
+        mg.addEventListener('query-model-changed', queryChanged);
+        mg.addEventListener('uri-model-changed', uriChanged);
+      });
+
+      suiteTeardown(function() {
+        var mg = getModelGenerator();
+        mg.removeEventListener('query-model-changed', queryChanged);
+        mg.removeEventListener('uri-model-changed', uriChanged);
+      });
+
+      setup(function() {
+        input = fixture('events');
+        var mg = getModelGenerator();
+        mg.queryParameters = [Object.assign({}, queryModel)];
+        mg.uriParameters = [Object.assign({}, uriModel)];
+        input.value = invalidUrl;
+      });
+      function updateParam(type, name, value) {
+        var ev = new CustomEvent(type + '-parameter-changed', {
+          bubbles: true,
+          detail: {
+            name: name,
+            value: value
+          },
+          cancelable: true
+        });
+        document.body.dispatchEvent(ev);
+      }
+
+      test('Invalid by default', function() {
+        assert.isTrue(input.invalid);
+      });
+
+      test('Valid after uri param update', function() {
+        updateParam('uri', 'path', 'test');
+        assert.isFalse(input.invalid);
+      });
+    });
+    </script>
+
+  </body>
+</html>

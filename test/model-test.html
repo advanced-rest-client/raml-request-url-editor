@@ -1,0 +1,153 @@
+<!doctype html>
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+    <script src="../../iron-test-helpers/test-helpers.js"></script>
+    <link rel="import" href="../../raml-request-parameters-editor/raml-request-parameters-model.html">
+    <link rel="import" href="../raml-request-url-editor.html">
+  </head>
+  <body>
+    <raml-request-parameters-model id="modelGen"></raml-request-parameters-model>
+
+    <test-fixture id="basic">
+      <template>
+        <raml-request-url-editor base-uri="https://domain.com" endpoint-uri="/{path}"></raml-request-url-editor>
+      </template>
+    </test-fixture>
+
+    <script>
+    /* global fixture, assert */
+    suite('Validation with query events', function() {
+      var input;
+      var invalidUrl = 'https://domain.com/{path}/';
+      var uriModel = {
+        key: 'path',
+        name: 'path',
+        required: true,
+        type: 'string'
+      };
+      var queryModel = [{
+        description: '',
+        key: 'p1',
+        name: 'p1',
+        required: true,
+        type: 'string',
+        default: 'test-default'
+      }, {
+        description: '',
+        key: 'p2',
+        name: 'p2',
+        required: false,
+        type: 'string'
+      }];
+      function getModelGenerator() {
+        return document.getElementById('modelGen');
+      }
+
+      function uriChanged(e) {
+        if (e.detail.path) {
+          input.set(e.detail.path, e.detail.value);
+        } else {
+          input.uriModel = e.detail.value;
+        }
+      }
+
+      function queryChanged(e) {
+        if (e.detail.path) {
+          input.set(e.detail.path, e.detail.value);
+        } else {
+          input.queryModel = e.detail.value;
+        }
+      }
+
+      suiteSetup(function() {
+        var mg = getModelGenerator();
+        mg.addEventListener('query-model-changed', queryChanged);
+        mg.addEventListener('uri-model-changed', uriChanged);
+      });
+
+      suiteTeardown(function() {
+        var mg = getModelGenerator();
+        mg.removeEventListener('query-model-changed', queryChanged);
+        mg.removeEventListener('uri-model-changed', uriChanged);
+      });
+
+      setup(function() {
+        input = fixture('basic');
+        var mg = getModelGenerator();
+        input.value = invalidUrl;
+        mg.queryParameters = queryModel.map(function(i) {
+          return Object.assign({}, i);
+        });
+        mg.uriParameters = [Object.assign({}, uriModel)];
+      });
+
+      function updateParam(type, name, value) {
+        var ev = new CustomEvent(type + '-parameter-changed', {
+          bubbles: true,
+          detail: {
+            name: name,
+            value: value
+          },
+          cancelable: true
+        });
+        document.body.dispatchEvent(ev);
+      }
+
+      test('Computes URL from model', function() {
+        assert.equal(input.value, 'https://domain.com/{path}?p1=test-default');
+      });
+
+      test('Updates value from uri change event', function() {
+        updateParam('uri', 'path', 'test-path');
+        assert.equal(input.value, 'https://domain.com/test-path?p1=test-default');
+      });
+      // Note, model generator has caching mechnism to cache params values.
+      // Restored element will get new model with values from the previous test
+      test('Updates default QP value', function() {
+        updateParam('query', 'p1', 'other-value');
+        assert.equal(input.value, 'https://domain.com/test-path?p1=other-value');
+      });
+
+      test('Updates optional QP value', function() {
+        updateParam('query', 'p2', 'p2-value');
+        assert.equal(input.value, 'https://domain.com/test-path?p1=other-value&p2=p2-value');
+      });
+
+      test('URI empty value removes parameter from the URL', function() {
+        updateParam('uri', 'path', '');
+        assert.equal(input.value, 'https://domain.com/{path}?p1=other-value&p2=p2-value');
+      });
+
+      test('Empty optional QP removes it from the URL', function() {
+        updateParam('query', 'p2', '');
+        assert.equal(input.value, 'https://domain.com/{path}?p1=other-value');
+      });
+
+      test('Empty required QP updates the value', function() {
+        updateParam('query', 'p1', '');
+        assert.equal(input.value, 'https://domain.com/{path}?p1=');
+      });
+
+      test('Ignores non existing properties', function() {
+        updateParam('query', 'not-exists', 'value');
+        assert.equal(input.value, 'https://domain.com/{path}?p1=');
+      });
+    });
+    </script>
+
+  </body>
+</html>
