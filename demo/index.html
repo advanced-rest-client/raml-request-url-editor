@@ -196,7 +196,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     if (~path.indexOf('.html')) {
       path = path.substr(0, path.lastIndexOf('/') + 1);
     }
-    var ramlRoot = location.protocol + '//' + location.host + path.replace('demo', 'test');
+    var ramlRoot = location.protocol + '//' + location.host + path;
     scope.testRaml = ramlRoot + 'test.raml';
     scope.envTest = ramlRoot + 'issue-console.raml';
 

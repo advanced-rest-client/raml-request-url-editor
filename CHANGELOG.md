@@ -1,3 +1,22 @@
+<a name="0.2.6"></a>
+## [0.2.6](https://github.com/advanced-rest-client/raml-request-url-editor/compare/0.2.5...0.2.6) (2018-03-06)
+
+
+### Fix
+
+* Fixed confition when processing model. ([b9867bfab6a1e81b5d5503ef8f0f3c3cfac96985](https://github.com/advanced-rest-client/raml-request-url-editor/commit/b9867bfab6a1e81b5d5503ef8f0f3c3cfac96985))
+
+### New
+
+* Added tests for model and events and for validation ([bd9260c5b1faf8b230c65b3a6a9b5c86a21471e9](https://github.com/advanced-rest-client/raml-request-url-editor/commit/bd9260c5b1faf8b230c65b3a6a9b5c86a21471e9))
+
+### Update
+
+* Added more browsers to test ([299677d7ef8c7e1fc717a03516412da7573716cb](https://github.com/advanced-rest-client/raml-request-url-editor/commit/299677d7ef8c7e1fc717a03516412da7573716cb))
+* Allowsing required query parameters to be added to the URL. ([7c13099ecf757d40e99587227e2f5de550792ca6](https://github.com/advanced-rest-client/raml-request-url-editor/commit/7c13099ecf757d40e99587227e2f5de550792ca6))
+
+
+
 <a name="0.2.5"></a>
 ## [0.2.5](https://github.com/advanced-rest-client/raml-request-url-editor/compare/0.2.4...0.2.5) (2018-01-08)
 
