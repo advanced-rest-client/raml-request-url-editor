@@ -364,7 +364,15 @@ Additionally use styles defined for the `paper-input` element.
         return result;
       }
       model.forEach(function(item) {
-        result[item.key] = item.value;
+        var value = item.value;
+        if (!value && item.required) {
+          value = '';
+        } else if (!item.required) {
+          if (!value && value === 0 && value !== false && value !== null) {
+            value = undefined;
+          }
+        }
+        result[item.key] = value;
       });
       return result;
     },
@@ -427,19 +435,13 @@ Additionally use styles defined for the `paper-input` element.
       var items = [];
       for (var paramName in params) {
         var value = params[paramName];
-        if (!value && value !== 0 && value !== null && value !== false) {
+        if (value === undefined) {
           continue;
         }
         var isArray = false;
         if (value instanceof Array) {
           isArray = true;
           if (!value.length || (value.length === 1 && !value[0])) {
-            continue;
-          }
-        } else {
-          value = String(value);
-          if (value.trim() === '') {
-            delete params[paramName];
             continue;
           }
         }
