@@ -653,14 +653,14 @@ Additionally use styles defined for the `paper-input` element.
         return false;
       }
 
-      if ('URL' in window) {
-        try {
-          new URL(value);
-          return true;
-        } catch (e) {
-          return false;
-        }
-      }
+      // if ('URL' in window) {
+      //   try {
+      //     new URL(value);
+      //     return true;
+      //   } catch (e) {
+      //     return false;
+      //   }
+      // }
       return this.$.input.validity.valid;
     },
     // Handler for input click / tap.
