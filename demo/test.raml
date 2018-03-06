@@ -1,6 +1,46 @@
 #%RAML 1.0
 title: My without base URL
 
+/withoutDefaults/{pathParam}:
+  uriParameters:
+    pathParam:
+      type: string
+  get:
+    queryParameters:
+      qp1:
+        type: string
+        required: true
+      qp2:
+        type: string
+        required: true
+/withDefaults/{pathParam}:
+  uriParameters:
+    pathParam:
+      type: string
+  get:
+    queryParameters:
+      qp3:
+        type: string
+        required: true
+        default: value1
+      qp4:
+        type: string
+        required: true
+        default: value2
+/notRequired/{pathParam}:
+  uriParameters:
+    pathParam:
+      type: string
+  get:
+    queryParameters:
+      qp5:
+        type: string
+        required: false
+        default: value1
+      qp6:
+        type: string
+        required: false
+        default: value2
 /people:
   get:
     description: Lists people
